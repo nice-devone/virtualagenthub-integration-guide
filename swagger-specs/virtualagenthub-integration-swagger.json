@@ -1,0 +1,540 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "VirtualAgentHub Integration Reference Endpoints",
+    "description": "Example endpoints and definitions for integration with VirtualAgentHub",
+    "contact": {
+      "name": "AAI Team",
+      "url": "https://tlvconfluence01.nice.com/display/IN/AAI+VAH+Team+Contact+Info",
+      "email": ""
+    },
+    "version": "v1"
+  },
+  "paths": {
+    "/exampleTextAssist": {
+      "post": {
+        "tags": [
+          "agentAssistIntegration"
+        ],
+        "summary": "Endpoints accepting AgentAssistUtterance_v1 POST payloads can be registered through AgentAssist application webhooks,\r\nto passivly process patron and agent utterances in realtime.  \r\nReturn payload from these endpoints are ignored, as the endpoints are invoked in a 'fire and forget' fashion.\r\nIt is up to individual AgentAssist applications UIs to subscribe to analytic data that these endpoints might produce, through \r\ntheir own mechanisms.",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAssistUtterance_v1"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAssistUtterance_v1"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAssistUtterance_v1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/virtualAgentIntegration/externalproviderexchange": {
+      "post": {
+        "tags": [
+          "virtualAgentIntegration"
+        ],
+        "summary": "Endpoints accepting an HTTP POST with ExternalIntegrationBotExchangeRequest payload and returning a valid BotExchangeResponse payload can\r\nbe used to integrate bots and bot frameworks to the VirtualAgentHub on a turn by turn exchange basis.  Integrations can be developed and tested\r\nwith the 'Custom Bot Exchange' virtual agent type, where the webhook url and authentication header can be registered.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalIntegrationBotExchangeRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalIntegrationBotExchangeRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalIntegrationBotExchangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotExchangeResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotExchangeResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotExchangeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionExecutionInfo": {
+        "type": "object",
+        "properties": {
+          "contactId": {
+            "type": "integer",
+            "description": "inContact script instance identifier.",
+            "format": "int64"
+          },
+          "busNo": {
+            "type": "integer",
+            "description": "inContact Business Unit identifier.",
+            "format": "int32"
+          },
+          "requestId": {
+            "type": "integer",
+            "description": "If provided in a request, the requestId may be included in the response.\r\nThis can be useful if a unique value is passed, for referencing a single request/response in log files",
+            "format": "int32"
+          },
+          "actionType": {
+            "type": "string",
+            "description": "Identify the requested action type.",
+            "nullable": true
+          },
+          "actionId": {
+            "type": "integer",
+            "description": "Identifier for a unique action instance within a script.",
+            "format": "int32"
+          },
+          "scriptName": {
+            "type": "string",
+            "description": "The path of the script making the action request.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Telemetry data for the execution of a script action within a script."
+      },
+      "AgentAssistUtterance_v1": {
+        "type": "object",
+        "properties": {
+          "contactId": {
+            "type": "integer",
+            "description": "Unique identifier for patron session",
+            "format": "int64"
+          },
+          "busNo": {
+            "type": "integer",
+            "description": "Tenant identifier",
+            "format": "int32"
+          },
+          "tenantId": {
+            "type": "string",
+            "description": "For UserHub tenants, in addition to busNo",
+            "nullable": true
+          },
+          "participantId": {
+            "type": "string",
+            "description": "Will be one of the following: Patron, Agent, or System",
+            "nullable": true
+          },
+          "messageBody": {
+            "type": "string",
+            "description": "Text of the user input (fromt participantId)",
+            "nullable": true
+          },
+          "messageMetaData": {
+            "description": "Any other useful data about the message, or part of the message in the case of images or links, etc that can be sent in a chat message",
+            "nullable": true
+          },
+          "agentAssistAppConfig": {
+            "description": "Configuration blob supplied from AgentAssistHub.  (It may only include the config identifier for app types with large config blobs (RTIG)",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Class definition version must match expected schema on receiving end (VirtualAgentHub for example)"
+      },
+      "AudioCollectionRules": {
+        "type": "object",
+        "properties": {
+          "collectionType": {
+            "$ref": "#/components/schemas/UserInputCollectType"
+          },
+          "dtmfRules": {
+            "$ref": "#/components/schemas/CollectDtmfRules"
+          },
+          "bargeConfiguration": {
+            "$ref": "#/components/schemas/PromptBargeConfiguration"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BotErrorDetails": {
+        "type": "object",
+        "properties": {
+          "errorBehavior": {
+            "$ref": "#/components/schemas/BotLoopErrorBehavior"
+          },
+          "errorPromptSequence": {
+            "$ref": "#/components/schemas/PromptSequence"
+          },
+          "systemErrorMessage": {
+            "type": "string",
+            "description": "Debug level information that will be logged by the system to assist in troubleshooting",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BotExchangeBranch": {
+        "enum": [
+          "DoNotBegin",
+          "PromptAndCollectNextResponse",
+          "ReturnControlToScript",
+          "EndContact",
+          "AudioInputUntranscribeable",
+          "Error",
+          "DTMFBreakout",
+          "UserInputTimeout",
+          "UserInputNotUnderstood"
+        ],
+        "type": "string",
+        "description": "Branching options for GenericBots"
+      },
+      "BotExchangeResponse": {
+        "type": "object",
+        "properties": {
+          "branchName": {
+            "$ref": "#/components/schemas/BotExchangeBranch"
+          },
+          "nextPromptSequence": {
+            "$ref": "#/components/schemas/PromptSequence"
+          },
+          "intentInfo": {
+            "$ref": "#/components/schemas/IntentInfo"
+          },
+          "nextPromptBehaviors": {
+            "$ref": "#/components/schemas/PromptBehaviors"
+          },
+          "customPayload": {
+            "type": "object",
+            "additionalProperties": { },
+            "description": "Supply any named data to the platform as 'script variables'.\r\nThese variables can be used in custom scripting, or referenced in subsequent prompts using {syntax}.\r\n\r\nRecommend against nested JSON structures, as custom SNIPPET scripting is required to dereference nested\r\nvalues.  Scripting is more convenient is customVariables is a flat, single level JSON object",
+            "nullable": true
+          },
+          "errorDetails": {
+            "$ref": "#/components/schemas/BotErrorDetails"
+          },
+          "botSessionState": {
+            "description": "A state object that will be returned in the next 'botExchange' of the GenericBot loop.\r\nThis should contain at least enough information to form a unique session identifier, and allow a bot to resume from where it left off in the last exchange.\r\nThis can be used to persist the entire bot state in a session, allowing for 'stateless' server side implementations.\r\nIncluding the entire transcript in this object is also possible, though size implications should be considered.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "When returned by a BotProxy using the GenericBot scripts,\r\nthe inContact platform can continue the GenericBot script loop (prompt/collect response),\r\nor break out of the BotLoop, returning control to the inContact script (with optional automatic command payloads)"
+      },
+      "BotLoopErrorBehavior": {
+        "enum": [
+          "ReturnControlToScriptThroughErrorBranch",
+          "EndContact"
+        ],
+        "type": "string",
+        "description": "Behavior to perform if BotProvider is unreachable or returns errors from any BotExchange"
+      },
+      "CollectDtmfRules": {
+        "type": "object",
+        "properties": {
+          "detectDtmf": {
+            "type": "boolean",
+            "description": "Should DTMF be detected"
+          },
+          "clearDigits": {
+            "type": "boolean",
+            "description": "Should any previously detected digits be cleared before applying collection rules?"
+          },
+          "terminationCharacters": {
+            "type": "string",
+            "description": "Any DTMF characters to be used as termination indicators.  Typcially a single '#' character.  A single '@' character indicates ANY DTMF digit detected will terminate the collection.",
+            "nullable": true
+          },
+          "stripTerminator": {
+            "type": "boolean",
+            "description": "If a terminator character is detected, should it be stripped out of the result?  (User hits 10#--should the result variable be '10' or '10#')"
+          },
+          "interDigitTimeoutMilliseconds": {
+            "type": "integer",
+            "description": "If this amount of time passes between already pressed didgits, the collection completes.\r\nFor example, 'On a scale of 1 to 10, how do you like X?'  A user presses 1, and may press a 0.  How long to wait before accepting 1 as the answer.",
+            "format": "int32"
+          },
+          "maxDigits": {
+            "type": "integer",
+            "description": "The maximum number of digits to collect a response, regardless of timeouts and terminationCharacters",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ExternalIntegrationBotExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "virtualAgentId": {
+            "type": "string",
+            "description": "Name of Business Unit's bot to identify the registered bot being invoked.\r\nThis name should be unique to the Business Unit",
+            "nullable": true
+          },
+          "botConfig": {
+            "description": "Configuration object registered with the bot being invoked",
+            "nullable": true
+          },
+          "userInput": {
+            "type": "string",
+            "description": "Input from a user instigating a bot interaction.  This may be sourced from a chat client, transcribed from audio input or DTMF, or input from other other media types.\r\n\r\nDepending on 'userInputType', this value may be automated to have specific values for known Use Cases, several of which are REQUIRED to be handled\r\n(see required Use Cases)",
+            "nullable": true,
+            "example": "Men's basketball shoes"
+          },
+          "userInputType": {
+            "$ref": "#/components/schemas/UserInputType"
+          },
+          "executionInfo": {
+            "$ref": "#/components/schemas/ActionExecutionInfo"
+          },
+          "systemTelemetryData": {
+            "$ref": "#/components/schemas/SystemTelemetryData"
+          },
+          "base64wavFile": {
+            "type": "string",
+            "nullable": true
+          },
+          "botSessionState": {
+            "nullable": true
+          },
+          "customPayload": {
+            "nullable": true
+          },
+          "mediaType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntentInfo": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string",
+            "description": "A string identification of the current intent recognized by the bot",
+            "nullable": true
+          },
+          "context": {
+            "type": "string",
+            "description": "A string identification of the current context known by the bot (context of the intent)",
+            "nullable": true
+          },
+          "intentConfidence": {
+            "type": "number",
+            "description": "Level of confidence in the Intent being correctly identified",
+            "format": "float"
+          },
+          "lastUserUtterance": {
+            "type": "string",
+            "description": "The last user input transcript",
+            "nullable": true
+          },
+          "slots": {
+            "type": "object",
+            "additionalProperties": { },
+            "description": "Slot name and values for the current intent recognition",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Intent information on the current Bot exchange response"
+      },
+      "PromptBargeConfiguration": {
+        "type": "object",
+        "properties": {
+          "enableSpeakerBarge": {
+            "type": "boolean",
+            "description": "Set to true to allow customer to interrupt the prompt with utterance.\r\nIf false, the entire prompt sequence will be played before the customer audio will be collected.\r\nFuture enhancements may include sensativity settings, etc."
+          }
+        },
+        "additionalProperties": false
+      },
+      "PromptBehaviors": {
+        "type": "object",
+        "properties": {
+          "silenceRules": {
+            "$ref": "#/components/schemas/SilenceRules"
+          },
+          "audioCollectionRules": {
+            "$ref": "#/components/schemas/AudioCollectionRules"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Specify rules on how to render and capture a round of prompts"
+      },
+      "PromptDefinition": {
+        "type": "object",
+        "properties": {
+          "transcript": {
+            "type": "string",
+            "description": "Human readable, friendly text representation of the prompt.\r\nIf the prompt is text-to-speech with markup for example, this representation is better for historical transcript\r\nIf the prompt is a pre-recorded wav file, this value will be used in transcript",
+            "nullable": true
+          },
+          "base64EncodedG711ulawWithWavHeader": {
+            "type": "string",
+            "description": "Audio payload supplied by the bot provider.  The inContact MediaServer will save this file locally, but\r\nthe file will only be referenceable during the lifetime of the phone call identified with ContactId \r\n(once the call ends, the file will be deleted).\r\nThe MediaServer will automatically reformulate the \"audioFilePath\" to reference the local file, and\r\nremove this 'base64EncodedG711ulawWithWavHeader' payload before relaying the response to the ScriptEngine (too much data)",
+            "nullable": true
+          },
+          "audioFilePath": {
+            "type": "string",
+            "description": "Optional path to a pre-recorded wav file.  For Voice sessions, if a valid audioFilePath is supplied, the specified audio will\r\nbe rendered instead of Text-To-Speech.\r\nVariables can be used in the path to support Persona variations (different personalities and languages)\r\n            \r\nFor example a {persona} variable of 'Emma' might be a german female recording for  \r\n'/prompts/{persona}/greeting.wav'",
+            "nullable": true
+          },
+          "textToSpeech": {
+            "type": "string",
+            "description": "Text to speech formated representation of the prompt.  SSML and other mark-up support varies by vendor.\r\nIf 'textToSpeech' value is null or empty, the 'transcript' text will be used for TTS",
+            "nullable": true
+          },
+          "mediaSpecificObject": {
+            "description": "For chat channels for example, this may contain instructions to render an image or a link",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Definition of a single prompt in a PromptSequence"
+      },
+      "PromptSequence": {
+        "type": "object",
+        "properties": {
+          "prompts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromptDefinition"
+            },
+            "description": "Sequential lists of prompt definitions which will be rendered to the customer.\r\nFor Voice sessions, the sequence can be a mix of Text-To-Speech and pre-recorded audio",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Sequential lists of prompt definitions which will be rendered to the customer.\r\nFor Voice sessions, the sequence can be a mix of Text-To-Speech and pre-recorded audio"
+      },
+      "SilenceRules": {
+        "type": "object",
+        "properties": {
+          "engageComfortSequence": {
+            "type": "boolean",
+            "description": "If true, the comfortPromptSequence will be rendered if 'botResponseDelayTolerance' elapses before the next BotExchangeResponse is returned"
+          },
+          "botResponseDelayTolerance": {
+            "type": "integer",
+            "description": "How long (in milliseconds) the user should endure silence from the bot before comfortSequence starts (if engageComfortSequence is true)\r\nAnecdotal recommendation is that more than 4 seconds (4000ms) of silence in a conversation becomes awkward.",
+            "format": "int32"
+          },
+          "comfortPromptSequence": {
+            "$ref": "#/components/schemas/PromptSequence"
+          },
+          "millisecondsToWaitForUserResponse": {
+            "type": "integer",
+            "description": "Overall interval to wait for user input, before submitting a NO_INPUT",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Rules controlling silence for both the bot and human in and exchange"
+      },
+      "SystemTelemetryData": {
+        "type": "object",
+        "properties": {
+          "consumerProcessHost": {
+            "type": "string",
+            "description": "Host name of the API caller",
+            "nullable": true
+          },
+          "consumerProcessName": {
+            "type": "string",
+            "description": "Process/application name of the API caller.  For example, 'EsnMediaServer.exe'",
+            "nullable": true
+          },
+          "consumerProcessVersion": {
+            "type": "string",
+            "description": "Any version information about the application calling the API",
+            "nullable": true
+          },
+          "inContactClusterAlias": {
+            "type": "string",
+            "description": "If applicable and available, supply inContact cluster alias (for example: 'C7', or 'HC19')",
+            "nullable": true
+          },
+          "inContactScriptEngineHost": {
+            "type": "string",
+            "description": "If applicable and available, supply inContact script engine host name (for example: 'lax-c4cor01' or 'aoa-c32cor01')",
+            "nullable": true
+          },
+          "consumerMetaData": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Arbitrary and extensible data about the API consumer",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Any data about the api consumer that may be useful for debugging, and/or telemetry data (billing, usage reports, etc).\r\nThis is the place for data that is NOT tied to an inContact script action, but related to behind-the-scenes infrastructure"
+      },
+      "UserInputCollectType": {
+        "enum": [
+          "DO_NOT_COLLECT_USER_RESPONSE",
+          "SEND_UTTERANCE_AUDIO",
+          "SEND_DTMF_ONLY_AS_TEXT"
+        ],
+        "type": "string"
+      },
+      "UserInputType": {
+        "enum": [
+          "NO_INPUT",
+          "TEXT",
+          "BASE64_ENCODED_G711_ULAW_WAV_FILE",
+          "USER_INPUT_ARCHIVED_AS_SPECIFIED",
+          "USER_ENDED_SESSION",
+          "AUTOMATED_TEXT",
+          "DTMF_AS_TEXT"
+        ],
+        "type": "string",
+        "description": "User input types"
+      }
+    }
+  }
+}
